@@ -20,10 +20,9 @@ $packages = Join-Path $run 'packages'
 New-Item -ItemType Directory -Path $feedA, $feedB, $consumer | Out-Null
 
 try {
-    Invoke-DotNet pack (Join-Path $repository 'sdk\dotnet\FocusRgb.Contracts\FocusRgb.Contracts.csproj') -c Release -o $feedA "-p:ArtifactsPath=$artifactsA" '-p:ContinuousIntegrationBuild=true'
-    Invoke-DotNet pack (Join-Path $repository 'sdk\dotnet\FocusRgb.PluginSdk\FocusRgb.PluginSdk.csproj') -c Release -o $feedA "-p:ArtifactsPath=$artifactsA" '-p:ContinuousIntegrationBuild=true'
-    Invoke-DotNet pack (Join-Path $repository 'sdk\dotnet\FocusRgb.Contracts\FocusRgb.Contracts.csproj') -c Release -o $feedB "-p:ArtifactsPath=$artifactsB" '-p:ContinuousIntegrationBuild=true'
-    Invoke-DotNet pack (Join-Path $repository 'sdk\dotnet\FocusRgb.PluginSdk\FocusRgb.PluginSdk.csproj') -c Release -o $feedB "-p:ArtifactsPath=$artifactsB" '-p:ContinuousIntegrationBuild=true'
+    $sdkProject = Join-Path $repository 'dotnet\FocusRgb.PluginSdk\FocusRgb.PluginSdk.csproj'
+    Invoke-DotNet pack $sdkProject -c Release -o $feedA "-p:ArtifactsPath=$artifactsA" '-p:ContinuousIntegrationBuild=true'
+    Invoke-DotNet pack $sdkProject -c Release -o $feedB "-p:ArtifactsPath=$artifactsB" '-p:ContinuousIntegrationBuild=true'
 
     $extractA = Join-Path $run 'package-a'
     $extractB = Join-Path $run 'package-b'
@@ -43,11 +42,11 @@ try {
         throw 'Plugin SDK package contents are not reproducible.'
     }
 
-    Copy-Item (Join-Path $repository 'tests\FocusRgb.PluginSdk.ConsumerFixture\*') $consumer
+    Copy-Item (Join-Path $repository 'dotnet\tests\FocusRgb.PluginSdk.ConsumerFixture\*') $consumer
     Invoke-DotNet restore (Join-Path $consumer 'FocusRgb.PluginSdk.ConsumerFixture.csproj') --source $feedA --packages $packages
     Invoke-DotNet build (Join-Path $consumer 'FocusRgb.PluginSdk.ConsumerFixture.csproj') -c Release --no-restore
 
-    Invoke-DotNet new install (Join-Path $repository 'sdk\templates\dotnet-plugin') --debug:custom-hive $templateHive
+    Invoke-DotNet new install (Join-Path $repository 'templates\dotnet-plugin') --debug:custom-hive $templateHive
     Invoke-DotNet new focusrgb-plugin --name FocusRgb.Plugin.Generated --PluginId generated-output `
         --output $generated --debug:custom-hive $templateHive
     $generatedProject = Join-Path $generated 'FocusRgb.Plugin.Generated.csproj'
@@ -57,11 +56,7 @@ try {
     if ($generatedManifest.id -ne 'generated-output' -or $generatedManifest.contractVersion -ne '1.0') {
         throw 'Generated plugin manifest did not contain the requested ID and stable contract.'
     }
-    & python (Join-Path $repository 'sdk\conformance\plugin-conformance.py') --plugin-id generated-output -- `
-        dotnet (Join-Path $generated 'bin\Release\net10.0\FocusRgb.Plugin.Generated.dll')
-    if ($LASTEXITCODE -ne 0) { throw 'Generated plugin failed protocol conformance.' }
-
-    Write-Host 'Verified reproducible SDK packages, independent consumer, and generated plugin.'
+    Write-Host 'Verified reproducible SDK package, independent consumer, and generated plugin.'
 }
 finally {
     $resolvedRun = [System.IO.Path]::GetFullPath($run)

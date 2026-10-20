@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/dotnet/">
+    <Project Path="dotnet/FocusRgb.PluginSdk/FocusRgb.PluginSdk.csproj" />
+  </Folder>
+  <Folder Name="/dotnet/tests/">
+    <Project Path="dotnet/tests/FocusRgb.PluginSdk.Tests/FocusRgb.PluginSdk.Tests.csproj" />
+  </Folder>
+</Solution>
