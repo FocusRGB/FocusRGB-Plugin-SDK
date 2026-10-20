@@ -4,6 +4,7 @@
     <Version>1.0.0</Version>
     <Description>Optional .NET process-plugin SDK for the stable FocusRGB 1.x JSON-RPC protocol.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>logo-128.png</PackageIcon>
     <RepositoryUrl>https://github.com/FocusRGB/FocusRGB-Plugin-SDK</RepositoryUrl>
     <PackageProjectUrl>https://github.com/FocusRGB/FocusRGB-Plugin-SDK</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
@@ -11,5 +12,6 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="..\..\assets\logo-128.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>
