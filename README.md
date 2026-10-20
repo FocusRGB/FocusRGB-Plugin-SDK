@@ -25,7 +25,7 @@ tested against a tagged version of that spec.
 ```text
 dotnet/      FocusRgb.PluginSdk (+ its message types) and tests
 templates/   dotnet new template for a standalone plugin repository
-tools/       package reproducibility and consumer checks
+tools/       package reproducibility, consumer, and tagged-spec conformance checks
 ```
 
 Licensed under MIT.
