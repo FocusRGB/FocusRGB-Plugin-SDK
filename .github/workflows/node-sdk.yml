@@ -1,0 +1,53 @@
+name: Node SDK
+
+on:
+  pull_request:
+    paths:
+      - node/**
+      - examples/node-plugin/**
+      - templates/node-plugin/**
+      - package.json
+      - package-lock.json
+      - .github/workflows/node-sdk.yml
+  push:
+    branches:
+      - develop
+      - main
+    paths:
+      - node/**
+      - examples/node-plugin/**
+      - templates/node-plugin/**
+      - package.json
+      - package-lock.json
+      - .github/workflows/node-sdk.yml
+
+permissions:
+  contents: read
+
+jobs:
+  node:
+    runs-on: windows-latest
+    env:
+      FOCUSRGB_SPEC_ROOT: ${{ github.workspace }}/build/focusrgb-spec
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check out protocol 1.1
+        uses: actions/checkout@v7
+        with:
+          repository: FocusRGB/FocusRGB
+          ref: spec-v1.1.0
+          path: build/focusrgb-spec
+          sparse-checkout: |
+            sdk/spec
+            sdk/conformance
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - run: npm ci
+      - run: npm run test:node
+      - run: npm run conformance:node
+      - run: npm pack --dry-run --workspace @focusrgb/plugin-sdk

@@ -13,8 +13,8 @@ tested against a tagged version of that spec.
 
 | Language | Package | Status |
 |---|---|---|
-| .NET (C#) | `FocusRgb.PluginSdk` on nuget.org | 1.0 being prepared |
-| Node.js | `@focusrgb/plugin-sdk` on npm, with `focusrgb-node-runner` | planned |
+| .NET (C#) | `FocusRgb.PluginSdk` on nuget.org | 1.0 published |
+| Node.js | `@focusrgb/plugin-sdk` on npm, with `focusrgb-node-runner` | implemented; publication pending npm organization |
 | Python | `focusrgb-plugin-sdk` on PyPI, with `focusrgb-python-runner` | planned |
 
 > **Migration in progress.** This repository was split out of `FocusRGB/FocusRGB` with its
@@ -26,9 +26,16 @@ tested against a tagged version of that spec.
 
 ```text
 dotnet/      FocusRgb.PluginSdk (+ its message types) and tests
-templates/   dotnet new template for a standalone plugin repository
+node/        @focusrgb/plugin-sdk, runner, typed contracts, and tests
+examples/    complete SDK consumer examples checked by conformance
+templates/   standalone .NET and Node plugin starters checked by conformance
 tools/       package reproducibility, consumer, and tagged-spec conformance checks
 ```
+
+The Node SDK targets protocol 1.1 and is tested against the immutable `spec-v1.1.0` tag. Its
+runner is shipped inside the package at `dist/focusrgb-node-runner.js`, the path used by the
+FocusRGB Windows host. The validation workflow produces a package artifact but cannot publish
+until the owner establishes the `@focusrgb` npm organization.
 
 Licensed under MIT.
 

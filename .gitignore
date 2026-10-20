@@ -1,6 +1,9 @@
 # --- build output ---
 /build/
 graphify-out/
+node_modules/
+dist/
+*.tgz
 
 # --- python ---
 __pycache__/

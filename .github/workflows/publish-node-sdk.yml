@@ -1,0 +1,82 @@
+# Package-only dry run until the owner establishes the @focusrgb npm organization.
+name: Validate Node SDK package
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Node SDK tag to validate and pack without publishing
+        required: true
+        default: sdk-node-v1.0.0
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: windows-latest
+    env:
+      FOCUSRGB_SPEC_ROOT: ${{ github.workspace }}/build/focusrgb-spec
+      RELEASE_TAG: ${{ inputs.release_tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Check out protocol 1.1
+        uses: actions/checkout@v7
+        with:
+          repository: FocusRGB/FocusRGB
+          ref: spec-v1.1.0
+          path: build/focusrgb-spec
+          sparse-checkout: |
+            sdk/spec
+            sdk/conformance
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Verify release tag and package version
+        shell: pwsh
+        run: |
+          if ($env:RELEASE_TAG -notmatch '^sdk-node-v([0-9]+\.[0-9]+\.[0-9]+)$') {
+            throw "Node SDK tags must use sdk-node-vMAJOR.MINOR.PATCH."
+          }
+          $package = Get-Content node/package.json | ConvertFrom-Json
+          if ($package.version -ne $Matches[1]) {
+            throw "node/package.json version must equal tag version $($Matches[1])."
+          }
+          git fetch origin --no-tags `
+            "+refs/heads/develop:refs/remotes/origin/develop" `
+            "+refs/heads/main:refs/remotes/origin/main"
+          if ($LASTEXITCODE -ne 0) { throw "Could not refresh develop and main history." }
+          git merge-base --is-ancestor $env:GITHUB_SHA origin/develop
+          $developExit = $LASTEXITCODE
+          if ($developExit -gt 1) { throw "Could not inspect develop ancestry." }
+          git merge-base --is-ancestor $env:GITHUB_SHA origin/main
+          $mainExit = $LASTEXITCODE
+          if ($mainExit -gt 1) { throw "Could not inspect main ancestry." }
+          if ($developExit -ne 0 -and $mainExit -ne 0) {
+            throw "Node SDK tags must point to develop or main history."
+          }
+          exit 0
+      - run: npm ci
+      - run: npm run test:node
+      - run: npm run conformance:node
+      - name: Pack without publishing
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force build/packages | Out-Null
+          npm pack --workspace @focusrgb/plugin-sdk --pack-destination build/packages
+          if ($LASTEXITCODE -ne 0) { throw "Node SDK packaging failed." }
+          $packages = @(Get-ChildItem build/packages -Filter *.tgz)
+          if ($packages.Count -ne 1) { throw "Dry run expected one Node SDK package." }
+      - uses: actions/upload-artifact@v7
+        with:
+          name: focusrgb-node-plugin-sdk
+          path: build/packages/*.tgz
+          if-no-files-found: error
+          retention-days: 1

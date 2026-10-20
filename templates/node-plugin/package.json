@@ -1,0 +1,15 @@
+{
+  "name": "focusrgb-node-template",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@focusrgb/plugin-sdk": "1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  }
+}
