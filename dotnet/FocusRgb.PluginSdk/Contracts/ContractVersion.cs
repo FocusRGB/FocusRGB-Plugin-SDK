@@ -1,8 +1,8 @@
 namespace FocusRgb.Contracts
 {
     /// <summary>
-    /// Version of the plugin protocol defined in sdk/spec/plugin-protocol.md. The host and a
-    /// plugin must share the major version; a plugin may report a lower minor version.
+    /// Version of the plugin protocol defined by FocusRGB tag spec-v1.0.0. The host and a plugin
+    /// must share the major version; a plugin may report a lower minor version.
     /// </summary>
     public static class ContractVersion
     {
