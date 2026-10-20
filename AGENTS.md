@@ -15,6 +15,8 @@ Rules specific to this repository:
 - Publish one package per language: `FocusRgb.PluginSdk` (nuget.org), `@focusrgb/plugin-sdk`
   (npm) and `focusrgb-plugin-sdk` (PyPI). Never publish or tag by hand. Publishing runs only
   through the gated `sdk-<language>-v*` workflows, and only after the owner approves.
+- Use Devantix as the author, company, and copyright owner in every .NET, Node, and Python
+  package's metadata; the FocusRGB organization, package names, and domain do not change.
 - Each SDK is tested against a **tagged** spec release from the main repository, never against
   its moving `develop` branch.
 - An SDK reports its identity in the `initialize` result (`sdk { name, language, version }`),
