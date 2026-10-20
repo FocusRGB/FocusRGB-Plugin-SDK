@@ -1,6 +1,15 @@
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
+$specRoot = $env:FOCUSRGB_SPEC_ROOT
+if ([string]::IsNullOrWhiteSpace($specRoot)) {
+    throw 'FOCUSRGB_SPEC_ROOT must point to a checkout of FocusRGB tag spec-v1.0.0.'
+}
+$conformance = Join-Path $specRoot 'sdk\conformance\plugin-conformance.py'
+if (-not (Test-Path -LiteralPath $conformance -PathType Leaf)) {
+    throw "Pinned conformance runner was not found at $conformance."
+}
+
 function Invoke-DotNet {
     & dotnet @args
     if ($LASTEXITCODE -ne 0) { throw "dotnet failed with exit code $LASTEXITCODE." }
@@ -56,7 +65,11 @@ try {
     if ($generatedManifest.id -ne 'generated-output' -or $generatedManifest.contractVersion -ne '1.0') {
         throw 'Generated plugin manifest did not contain the requested ID and stable contract.'
     }
-    Write-Host 'Verified reproducible SDK package, independent consumer, and generated plugin.'
+    & python $conformance --plugin-id generated-output -- `
+        dotnet (Join-Path $generated 'bin\Release\net10.0\FocusRgb.Plugin.Generated.dll')
+    if ($LASTEXITCODE -ne 0) { throw 'Generated plugin failed pinned protocol conformance.' }
+
+    Write-Host 'Verified reproducible SDK package, independent consumer, generated plugin, and pinned conformance.'
 }
 finally {
     $resolvedRun = [System.IO.Path]::GetFullPath($run)
