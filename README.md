@@ -5,7 +5,7 @@ separate process that FocusRGB starts and talks to directly over stdin/stdout us
 newline-delimited JSON-RPC. These SDKs implement that protocol so plugin authors don't have to.
 
 The protocol itself is defined in the main repository, not here:
-[`sdk/spec/`](https://github.com/FocusRGB/FocusRGB/tree/develop/sdk/spec) holds the normative
+[`sdk/spec/`](https://github.com/FocusRGB/FocusRGB/tree/spec-v1.0.0/sdk/spec) holds the normative
 spec and JSON schemas, and its conformance kit checks any plugin in any language. Each SDK here is
 tested against a tagged version of that spec.
 
@@ -16,8 +16,8 @@ tested against a tagged version of that spec.
 | Python | `focusrgb-plugin-sdk` on PyPI, with `focusrgb-python-runner` | planned |
 
 > **Migration in progress.** This repository was split out of `FocusRGB/FocusRGB` with its
-> history. The .NET projects, the `dotnet new` template and the package tooling are here; the
-> solution file, CI and the Node and Python SDKs are being added. See
+> history. The .NET SDK, its public protocol types, template, tests and package tooling are here;
+> the Node and Python SDKs will follow. See
 > [FocusRGB#84](https://github.com/FocusRGB/FocusRGB/issues/84).
 
 ## Layout
@@ -31,3 +31,4 @@ tools/       package reproducibility and consumer checks
 Licensed under MIT.
 
 Assisted-by: Claude
+Assisted-by: OpenAI Codex
