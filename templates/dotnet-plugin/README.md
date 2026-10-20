@@ -15,6 +15,8 @@ cd FocusRgb.Plugin.MyDevice
 dotnet build -c Release
 ```
 
+Replace the year and copyright-holder placeholders in `LICENSE.txt` before publishing.
+
 Use a lowercase `PluginId` containing only letters, digits, and hyphens. Replace the example
 catalog and binding behavior, narrow the manifest's platforms/resources, set its `source`, and
 add provider tests before publishing. Protocol messages belong on standard output; use standard

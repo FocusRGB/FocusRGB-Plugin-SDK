@@ -65,6 +65,10 @@ try {
     if ($generatedManifest.id -ne 'generated-output' -or $generatedManifest.contractVersion -ne '1.0') {
         throw 'Generated plugin manifest did not contain the requested ID and stable contract.'
     }
+    $generatedLicense = Get-Content (Join-Path $generated 'LICENSE.txt') -Raw
+    if ($generatedLicense -match 'Devantix') {
+        throw 'Generated plugin license must not claim Devantix owns community plugin code.'
+    }
     & python $conformance --plugin-id generated-output -- `
         dotnet (Join-Path $generated 'bin\Release\net10.0\FocusRgb.Plugin.Generated.dll')
     if ($LASTEXITCODE -ne 0) { throw 'Generated plugin failed pinned protocol conformance.' }
