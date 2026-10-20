@@ -1,0 +1,14 @@
+{
+  "name": "focusrgb-plugin-sdks",
+  "private": true,
+  "workspaces": [
+    "node",
+    "examples/node-plugin",
+    "templates/node-plugin"
+  ],
+  "scripts": {
+    "build:node": "npm run build --workspace @focusrgb/plugin-sdk && npm run build --workspace focusrgb-node-example && npm run build --workspace focusrgb-node-template",
+    "test:node": "npm run build:node && npm run test --workspace @focusrgb/plugin-sdk",
+    "conformance:node": "python build/focusrgb-spec/sdk/conformance/plugin-conformance.py --plugin-id node-example -- node node/dist/focusrgb-node-runner.js examples/node-plugin/dist/plugin.js && python build/focusrgb-spec/sdk/conformance/plugin-conformance.py --plugin-id node-template -- node node/dist/focusrgb-node-runner.js templates/node-plugin/dist/plugin.js"
+  }
+}
