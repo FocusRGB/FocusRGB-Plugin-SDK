@@ -3,7 +3,7 @@ using System.Text.Json;
 using FocusRgb.Contracts;
 using FocusRgb.PluginSdk;
 
-namespace FocusRgb.App.Tests
+namespace FocusRgb.PluginSdk.Tests
 {
     public sealed class PluginServerTests
     {
