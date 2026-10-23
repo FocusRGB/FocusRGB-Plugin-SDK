@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace FocusRgb.Contracts
 {
-    /// <summary>Names the JSON-RPC methods in the stable 1.0 plugin protocol.</summary>
+    /// <summary>Names the JSON-RPC methods in the stable 1.2 plugin protocol.</summary>
     public static class PluginMethods
     {
         public const string Initialize = "initialize";
@@ -24,6 +24,7 @@ namespace FocusRgb.Contracts
         public string? Version { get; init; }
         public string? ContractVersion { get; init; }
         public string? EntryPoint { get; init; }
+        public string? Runtime { get; init; }
         public List<string>? OperatingSystems { get; init; }
         public List<string>? Architectures { get; init; }
         public List<string>? Roles { get; init; }
@@ -101,7 +102,7 @@ namespace FocusRgb.Contracts
         public required string DisplayName { get; init; }
     }
 
-    /// <summary>Requests either an effect or layout catalog.</summary>
+    /// <summary>Requests an effect, layout, or installed-game catalog.</summary>
     public sealed class CatalogListParameters
     {
         public required string Kind { get; init; }
@@ -123,6 +124,13 @@ namespace FocusRgb.Contracts
         public required string DisplayName { get; init; }
         public required bool Available { get; init; }
         public PluginReason? Reason { get; init; }
+        public PluginGameCatalogMetadata? Game { get; init; }
+    }
+
+    /// <summary>Lists executable file names that identify one installed game without exposing paths.</summary>
+    public sealed class PluginGameCatalogMetadata
+    {
+        public required IReadOnlyList<string> Executables { get; init; }
     }
 
     /// <summary>Describes the provider-managed or explicit device scope for one binding.</summary>

@@ -76,7 +76,7 @@ namespace FocusRgb.PluginSdk.Tests
         {
             var plugin = new InitializingPlugin();
             using var input = new StringReader(
-                "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"contractVersion\":\"1.0\",\"host\":{\"name\":\"test\",\"version\":\"1.0.0\"}}}");
+                "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"contractVersion\":\"1.2\",\"host\":{\"name\":\"test\",\"version\":\"1.0.0\"}}}");
             using var output = new StringWriter();
 
             await PluginServer.RunAsync(
@@ -109,6 +109,26 @@ namespace FocusRgb.PluginSdk.Tests
             Assert.Matches("^[0-9]+\\.[0-9]+\\.[0-9]+$", sdk.GetProperty("version").GetString());
         }
 
+        [Fact]
+        public async Task RunAsync_RoundTripsGameCatalogMetadata()
+        {
+            using var input = new StringReader(
+                "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"catalog/list\",\"params\":{\"kind\":\"game\"}}");
+            using var output = new StringWriter();
+
+            await PluginServer.RunAsync(
+                new GameCatalogPlugin(), input, output, TextWriter.Null,
+                TestContext.Current.CancellationToken);
+
+            using var response = JsonDocument.Parse(output.ToString());
+            var result = response.RootElement.GetProperty("result");
+            Assert.Equal("supported", result.GetProperty("support").GetString());
+            var item = Assert.Single(result.GetProperty("items").EnumerateArray());
+            Assert.Equal("example-game", item.GetProperty("resourceId").GetString());
+            Assert.Equal("ExampleGame.exe", Assert.Single(
+                item.GetProperty("game").GetProperty("executables").EnumerateArray()).GetString());
+        }
+
         private class StubPlugin : IFocusRgbPlugin
         {
             public virtual Task<InitializeResult> InitializeAsync(
@@ -118,7 +138,7 @@ namespace FocusRgb.PluginSdk.Tests
             public virtual Task<PluginStatusResult> GetStatusAsync(CancellationToken cancellationToken) =>
                 throw new NotSupportedException();
 
-            public Task<PluginCatalogResult> ListCatalogAsync(
+            public virtual Task<PluginCatalogResult> ListCatalogAsync(
                 CatalogListParameters parameters,
                 CancellationToken cancellationToken) => throw new NotSupportedException();
 
@@ -154,7 +174,7 @@ namespace FocusRgb.PluginSdk.Tests
             {
                 PluginId = "example-plugin",
                 PluginVersion = "2.3.4",
-                ContractVersion = "1.0",
+                ContractVersion = "1.2",
                 Capabilities =
                 [
                     new PluginCapability
@@ -168,6 +188,33 @@ namespace FocusRgb.PluginSdk.Tests
             public override Task<InitializeResult> InitializeAsync(
                 InitializeParameters parameters,
                 CancellationToken cancellationToken) => Task.FromResult(Result);
+        }
+
+        private sealed class GameCatalogPlugin : StubPlugin
+        {
+            public override Task<PluginCatalogResult> ListCatalogAsync(
+                CatalogListParameters parameters,
+                CancellationToken cancellationToken)
+            {
+                Assert.Equal("game", parameters.Kind);
+                return Task.FromResult(new PluginCatalogResult
+                {
+                    Support = "supported",
+                    Items =
+                    [
+                        new PluginCatalogItem
+                        {
+                            ResourceId = "example-game",
+                            DisplayName = "Example Game",
+                            Available = true,
+                            Game = new PluginGameCatalogMetadata
+                            {
+                                Executables = ["ExampleGame.exe"]
+                            }
+                        }
+                    ]
+                });
+            }
         }
 
         private sealed class CancelRaceReader(Task cancelAfter, Task finishAfter) : TextReader
