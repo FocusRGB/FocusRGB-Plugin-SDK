@@ -1,10 +1,9 @@
 # FocusRgb.Plugin.Template
 
-Standalone FocusRGB 1.0 process-plugin starter. It depends only on the public
+Standalone FocusRGB 1.2 process-plugin starter. It depends only on the public
 `FocusRgb.PluginSdk` package and does not require an app source checkout.
 
-The 1.0 package is not on nuget.org until the protected SDK publication workflow completes;
-restore will fail before that release is published.
+The template targets `FocusRgb.PluginSdk` 1.2.0 from nuget.org.
 
 ## Create a plugin repository
 
@@ -28,4 +27,4 @@ Run the language-neutral conformance check before packaging:
 python path/to/plugin-conformance.py --plugin-id my-device -- dotnet bin/Release/net10.0/FocusRgb.Plugin.MyDevice.dll
 ```
 
-See the [FocusRGB plugin protocol](https://github.com/FocusRGB/FocusRGB/blob/spec-v1.0.0/sdk/spec/plugin-protocol.md).
+See the [FocusRGB plugin protocol](https://github.com/FocusRGB/FocusRGB/blob/spec-v1.2.0/sdk/spec/plugin-protocol.md).

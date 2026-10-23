@@ -7,13 +7,13 @@ separate process that FocusRGB starts and talks to directly over stdin/stdout us
 newline-delimited JSON-RPC. These SDKs implement that protocol so plugin authors don't have to.
 
 The protocol itself is defined in the main repository, not here:
-[`sdk/spec/`](https://github.com/FocusRGB/FocusRGB/tree/spec-v1.0.0/sdk/spec) holds the normative
+[`sdk/spec/`](https://github.com/FocusRGB/FocusRGB/tree/spec-v1.2.0/sdk/spec) holds the normative
 spec and JSON schemas, and its conformance kit checks any plugin in any language. Each SDK here is
 tested against a tagged version of that spec.
 
 | Language | Package | Status |
 |---|---|---|
-| .NET (C#) | `FocusRgb.PluginSdk` on nuget.org | 1.0 being prepared |
+| .NET (C#) | `FocusRgb.PluginSdk` on nuget.org | 1.2 in development |
 | Node.js | `@focusrgb/plugin-sdk` on npm, with `focusrgb-node-runner` | planned |
 | Python | `focusrgb-plugin-sdk` on PyPI, with `focusrgb-python-runner` | planned |
 
