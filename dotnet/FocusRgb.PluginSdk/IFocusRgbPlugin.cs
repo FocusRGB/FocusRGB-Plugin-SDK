@@ -9,7 +9,7 @@ namespace FocusRgb.PluginSdk
         Task LogAsync(string message, CancellationToken cancellationToken = default);
     }
 
-    /// <summary>Implements the stable methods in the FocusRGB 1.0 process-plugin contract.</summary>
+    /// <summary>Implements the stable methods in the FocusRGB 1.2 process-plugin contract.</summary>
     public interface IFocusRgbPlugin
     {
         void Connect(IPluginHost host)

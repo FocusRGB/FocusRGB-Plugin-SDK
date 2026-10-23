@@ -7,7 +7,7 @@ namespace FocusRgb.PluginSdk.Tests
     public sealed class ProtocolDriftTests
     {
         [Fact]
-        public void ContractVersion_MatchesPinnedProtocol() => Assert.Equal("1.0", ContractVersion.Current);
+        public void ContractVersion_MatchesPinnedProtocol() => Assert.Equal("1.2", ContractVersion.Current);
 
         [Fact]
         public void ProtocolSchema_UsesPinnedReleaseId()
@@ -15,7 +15,7 @@ namespace FocusRgb.PluginSdk.Tests
             using var schema = ReadSchema("plugin-protocol.schema.json");
 
             Assert.Equal(
-                "https://raw.githubusercontent.com/FocusRGB/FocusRGB/spec-v1.0.0/sdk/spec/plugin-protocol.schema.json",
+                "https://raw.githubusercontent.com/FocusRGB/FocusRGB/spec-v1.2.0/sdk/spec/plugin-protocol.schema.json",
                 schema.RootElement.GetProperty("$id").GetString());
         }
 
@@ -25,7 +25,7 @@ namespace FocusRgb.PluginSdk.Tests
             using var schema = ReadSchema("plugin-manifest.schema.json");
 
             Assert.Equal(
-                "https://raw.githubusercontent.com/FocusRGB/FocusRGB/spec-v1.0.0/sdk/spec/plugin-manifest.schema.json",
+                "https://raw.githubusercontent.com/FocusRGB/FocusRGB/spec-v1.2.0/sdk/spec/plugin-manifest.schema.json",
                 schema.RootElement.GetProperty("$id").GetString());
         }
 
@@ -61,6 +61,7 @@ namespace FocusRgb.PluginSdk.Tests
             { typeof(CatalogListParameters), "catalogListParameters" },
             { typeof(PluginCatalogResult), "pluginCatalogResult" },
             { typeof(PluginCatalogItem), "pluginCatalogItem" },
+            { typeof(PluginGameCatalogMetadata), "pluginGameCatalogMetadata" },
             { typeof(PluginDeviceScope), "pluginDeviceScope" },
             { typeof(BindingApplyParameters), "bindingApplyParameters" },
             { typeof(BindingApplyResult), "bindingApplyResult" },
@@ -114,11 +115,39 @@ namespace FocusRgb.PluginSdk.Tests
             Assert.True(contractProperties.SetEquals(schemaProperties));
         }
 
+        [Fact]
+        public void GameCatalogSchema_RequiresUniqueExecutableFileNames()
+        {
+            using var schema = ReadSchema("plugin-protocol.schema.json");
+            var definitions = schema.RootElement.GetProperty("$defs");
+            var kinds = definitions.GetProperty("catalogListParameters").GetProperty("properties")
+                .GetProperty("kind").GetProperty("enum").EnumerateArray()
+                .Select(item => item.GetString());
+            var executables = definitions.GetProperty("pluginGameCatalogMetadata")
+                .GetProperty("properties").GetProperty("executables");
+
+            Assert.Contains("game", kinds);
+            Assert.True(executables.GetProperty("uniqueItems").GetBoolean());
+            Assert.Equal(1, executables.GetProperty("items").GetProperty("minLength").GetInt32());
+            Assert.Equal("^[^/\\\\]+$", executables.GetProperty("items").GetProperty("pattern").GetString());
+        }
+
+        [Fact]
+        public void ManifestRuntime_MatchesPinnedProtocol()
+        {
+            using var schema = ReadSchema("plugin-manifest.schema.json");
+            var values = schema.RootElement.GetProperty("properties").GetProperty("runtime")
+                .GetProperty("enum").EnumerateArray().Select(item => item.GetString()).ToArray();
+
+            Assert.Equal(["node", "python"], values);
+            Assert.Equal(typeof(string), typeof(PluginManifest).GetProperty(nameof(PluginManifest.Runtime))!.PropertyType);
+        }
+
         private static JsonDocument ReadSchema(string fileName)
         {
             var specRoot = Environment.GetEnvironmentVariable("FOCUSRGB_SPEC_ROOT");
             Assert.False(string.IsNullOrWhiteSpace(specRoot),
-                "FOCUSRGB_SPEC_ROOT must point to a checkout of FocusRGB tag spec-v1.0.0.");
+                "FOCUSRGB_SPEC_ROOT must point to a checkout of FocusRGB tag spec-v1.2.0.");
             var path = Path.Combine(specRoot, "sdk", "spec", fileName);
             Assert.True(File.Exists(path), $"Pinned schema was not found at {path}.");
             return JsonDocument.Parse(File.ReadAllText(path));
