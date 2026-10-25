@@ -17,11 +17,11 @@ jobs:
       FOCUSRGB_SPEC_ROOT: ${{ github.workspace }}/build/focusrgb-spec
     steps:
       - uses: actions/checkout@v7
-      - name: Check out protocol 1.2
+      - name: Check out protocol 1.3
         uses: actions/checkout@v7
         with:
           repository: FocusRGB/FocusRGB
-          ref: spec-v1.2.0
+          ref: spec-v1.3.0
           path: build/focusrgb-spec
           sparse-checkout: |
             sdk/spec

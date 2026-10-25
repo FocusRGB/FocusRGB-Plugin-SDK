@@ -3,7 +3,7 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 $specRoot = $env:FOCUSRGB_SPEC_ROOT
 if ([string]::IsNullOrWhiteSpace($specRoot)) {
-    throw 'FOCUSRGB_SPEC_ROOT must point to a checkout of FocusRGB tag spec-v1.2.0.'
+    throw 'FOCUSRGB_SPEC_ROOT must point to a checkout of FocusRGB tag spec-v1.3.0.'
 }
 $conformance = Join-Path $specRoot 'sdk\conformance\plugin-conformance.py'
 if (-not (Test-Path -LiteralPath $conformance -PathType Leaf)) {
@@ -36,9 +36,9 @@ try {
     $extractA = Join-Path $run 'package-a'
     $extractB = Join-Path $run 'package-b'
     [System.IO.Compression.ZipFile]::ExtractToDirectory(
-        (Join-Path $feedA 'FocusRgb.PluginSdk.1.2.0.nupkg'), $extractA)
+        (Join-Path $feedA 'FocusRgb.PluginSdk.1.3.0.nupkg'), $extractA)
     [System.IO.Compression.ZipFile]::ExtractToDirectory(
-        (Join-Path $feedB 'FocusRgb.PluginSdk.1.2.0.nupkg'), $extractB)
+        (Join-Path $feedB 'FocusRgb.PluginSdk.1.3.0.nupkg'), $extractB)
     $contentsA = Get-ChildItem $extractA -Recurse -File | Sort-Object FullName | ForEach-Object {
         $_.FullName.Substring($extractA.Length) + ':' + (Get-FileHash $_.FullName -Algorithm SHA256).Hash
     }
@@ -62,7 +62,7 @@ try {
     Invoke-DotNet restore $generatedProject --source $feedA --packages $packages
     Invoke-DotNet build $generatedProject -c Release --no-restore --disable-build-servers
     $generatedManifest = Get-Content (Join-Path $generated 'focusrgb-plugin.json') -Raw | ConvertFrom-Json
-    if ($generatedManifest.id -ne 'generated-output' -or $generatedManifest.contractVersion -ne '1.2') {
+    if ($generatedManifest.id -ne 'generated-output' -or $generatedManifest.contractVersion -ne '1.3') {
         throw 'Generated plugin manifest did not contain the requested ID and stable contract.'
     }
     $generatedLicense = Get-Content (Join-Path $generated 'LICENSE.txt') -Raw

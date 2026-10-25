@@ -12,7 +12,7 @@
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
     <PathMap Condition="'$(ContinuousIntegrationBuild)' == 'true'">$(MSBuildThisFileDirectory)=/_/,$(ArtifactsPath)=/_/artifacts/</PathMap>
     <Version>0.1.0</Version>
-    <Authors>Devantix</Authors>
+    <Authors>Amin Javan</Authors>
     <Company>Devantix</Company>
     <Copyright>Copyright (c) 2026 Devantix</Copyright>
     <Product>FocusRGB</Product>
