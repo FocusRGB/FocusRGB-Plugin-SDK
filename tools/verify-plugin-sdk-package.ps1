@@ -51,6 +51,25 @@ try {
         throw 'Plugin SDK package contents are not reproducible.'
     }
 
+    $symbolsA = @(Get-ChildItem $feedA -Filter *.snupkg)
+    $symbolsB = @(Get-ChildItem $feedB -Filter *.snupkg)
+    if ($symbolsA.Count -ne 1 -or $symbolsB.Count -ne 1) {
+        throw 'Expected one SDK symbol package from each build.'
+    }
+    $symbolExtractA = Join-Path $run 'symbols-a'
+    $symbolExtractB = Join-Path $run 'symbols-b'
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($symbolsA[0].FullName, $symbolExtractA)
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($symbolsB[0].FullName, $symbolExtractB)
+    $pdbA = @(Get-ChildItem $symbolExtractA -Recurse -Filter FocusRgb.PluginSdk.pdb)
+    $pdbB = @(Get-ChildItem $symbolExtractB -Recurse -Filter FocusRgb.PluginSdk.pdb)
+    if ($pdbA.Count -ne 1 -or $pdbB.Count -ne 1) {
+        throw 'Symbol packages must contain the SDK portable PDB.'
+    }
+    if ((Get-FileHash $pdbA[0].FullName -Algorithm SHA256).Hash -ne
+        (Get-FileHash $pdbB[0].FullName -Algorithm SHA256).Hash) {
+        throw 'SDK portable PDBs are not reproducible.'
+    }
+
     Copy-Item (Join-Path $repository 'dotnet\tests\FocusRgb.PluginSdk.ConsumerFixture\*') $consumer
     Invoke-DotNet restore (Join-Path $consumer 'FocusRgb.PluginSdk.ConsumerFixture.csproj') --source $feedA --packages $packages
     Invoke-DotNet build (Join-Path $consumer 'FocusRgb.PluginSdk.ConsumerFixture.csproj') -c Release --no-restore --disable-build-servers
