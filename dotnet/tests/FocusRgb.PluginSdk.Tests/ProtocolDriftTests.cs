@@ -1,25 +1,13 @@
 using System.Reflection;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using FocusRgb.Contracts;
 
 namespace FocusRgb.PluginSdk.Tests
 {
     public sealed class ProtocolDriftTests
     {
-        private static readonly Dictionary<Type, string> SchemaNames = new()
-        {
-            [typeof(GameReference)] = "pluginGameReference",
-            [typeof(TelemetrySectionDescriptor)] = "pluginTelemetrySection",
-            [typeof(TelemetryChoiceDescriptor)] = "pluginTelemetryChoice",
-            [typeof(TelemetryDescriptor)] = "pluginTelemetryCatalogMetadata",
-            [typeof(TelemetrySource)] = "pluginTelemetrySource",
-            [typeof(TelemetryValue)] = "pluginTelemetryValue",
-            [typeof(TelemetryEvent)] = "pluginTelemetryEvent"
-        };
-
         [Fact]
-        public void ContractVersion_MatchesPinnedProtocol() => Assert.Equal("1.3", ContractVersion.Current);
+        public void ContractVersion_MatchesPinnedProtocol() => Assert.Equal("1.2", ContractVersion.Current);
 
         [Fact]
         public void ProtocolSchema_UsesPinnedReleaseId()
@@ -27,7 +15,7 @@ namespace FocusRgb.PluginSdk.Tests
             using var schema = ReadSchema("plugin-protocol.schema.json");
 
             Assert.Equal(
-                "https://raw.githubusercontent.com/FocusRGB/FocusRGB/spec-v1.3.0/sdk/spec/plugin-protocol.schema.json",
+                "https://raw.githubusercontent.com/FocusRGB/FocusRGB/spec-v1.2.0/sdk/spec/plugin-protocol.schema.json",
                 schema.RootElement.GetProperty("$id").GetString());
         }
 
@@ -37,7 +25,7 @@ namespace FocusRgb.PluginSdk.Tests
             using var schema = ReadSchema("plugin-manifest.schema.json");
 
             Assert.Equal(
-                "https://raw.githubusercontent.com/FocusRGB/FocusRGB/spec-v1.3.0/sdk/spec/plugin-manifest.schema.json",
+                "https://raw.githubusercontent.com/FocusRGB/FocusRGB/spec-v1.2.0/sdk/spec/plugin-manifest.schema.json",
                 schema.RootElement.GetProperty("$id").GetString());
         }
 
@@ -74,21 +62,11 @@ namespace FocusRgb.PluginSdk.Tests
             { typeof(PluginCatalogResult), "pluginCatalogResult" },
             { typeof(PluginCatalogItem), "pluginCatalogItem" },
             { typeof(PluginGameCatalogMetadata), "pluginGameCatalogMetadata" },
-            { typeof(GameReference), "pluginGameReference" },
-            { typeof(TelemetrySectionDescriptor), "pluginTelemetrySection" },
-            { typeof(TelemetryChoiceDescriptor), "pluginTelemetryChoice" },
-            { typeof(TelemetryDescriptor), "pluginTelemetryCatalogMetadata" },
-            { typeof(TelemetrySource), "pluginTelemetrySource" },
-            { typeof(TelemetryValue), "pluginTelemetryValue" },
-            { typeof(TelemetryEvent), "pluginTelemetryEvent" },
-            { typeof(GameTelemetryNotification), "gameTelemetryParameters" },
             { typeof(PluginDeviceScope), "pluginDeviceScope" },
             { typeof(BindingApplyParameters), "bindingApplyParameters" },
             { typeof(BindingApplyResult), "bindingApplyResult" },
             { typeof(BindingReleaseParameters), "bindingReleaseParameters" },
             { typeof(BindingReleaseResult), "bindingReleaseResult" },
-            { typeof(EffectInputsRequest), "effectInputParameters" },
-            { typeof(EffectInputsResult), "effectInputResult" },
             { typeof(CancelParameters), "cancelParameters" },
         };
 
@@ -101,9 +79,7 @@ namespace FocusRgb.PluginSdk.Tests
             var schemaProperties = definition.GetProperty("properties").EnumerateObject()
                 .ToDictionary(property => property.Name, property => property.Value, StringComparer.Ordinal);
             var contractProperties = contractType.GetProperties().ToDictionary(
-                property => property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name
-                    ?? JsonNamingPolicy.CamelCase.ConvertName(property.Name),
-                StringComparer.Ordinal);
+                property => JsonNamingPolicy.CamelCase.ConvertName(property.Name), StringComparer.Ordinal);
 
             Assert.True(contractProperties.Keys.ToHashSet(StringComparer.Ordinal)
                 .SetEquals(schemaProperties.Keys));
@@ -157,40 +133,6 @@ namespace FocusRgb.PluginSdk.Tests
         }
 
         [Fact]
-        public void TelemetryConstants_MatchPinnedProtocolEnums()
-        {
-            using var schema = ReadSchema("plugin-protocol.schema.json");
-            var definitions = schema.RootElement.GetProperty("$defs");
-            var kinds = definitions.GetProperty("catalogListParameters").GetProperty("properties")
-                .GetProperty("kind").GetProperty("enum").EnumerateArray().Select(item => item.GetString());
-            var valueTypes = definitions.GetProperty("pluginTelemetryCatalogMetadata").GetProperty("properties")
-                .GetProperty("valueType").GetProperty("enum").EnumerateArray().Select(item => item.GetString());
-
-            Assert.Equal([CatalogKind.Effect, CatalogKind.Layout, CatalogKind.Game, CatalogKind.Telemetry], kinds);
-            Assert.Equal(
-                [TelemetryValueType.Boolean, TelemetryValueType.Number, TelemetryValueType.String, TelemetryValueType.Event],
-                valueTypes);
-        }
-
-        [Fact]
-        public void TelemetrySchema_PreservesBoundsAndEffectInputIdentity()
-        {
-            using var schema = ReadSchema("plugin-protocol.schema.json");
-            var definitions = schema.RootElement.GetProperty("$defs");
-            var notification = definitions.GetProperty("gameTelemetryParameters").GetProperty("properties");
-            var effectInput = definitions.GetProperty("effectInputParameters");
-
-            Assert.Equal(2048, notification.GetProperty("inputs").GetProperty("maxItems").GetInt32());
-            Assert.Equal(128, notification.GetProperty("events").GetProperty("maxItems").GetInt32());
-            Assert.Contains("sourceResourceId", effectInput.GetProperty("required")
-                .EnumerateArray().Select(item => item.GetString()));
-            Assert.Equal(
-                [TelemetryFreshness.Fresh, TelemetryFreshness.Stale, TelemetryFreshness.Disconnected],
-                effectInput.GetProperty("properties").GetProperty("freshness").GetProperty("enum")
-                    .EnumerateArray().Select(item => item.GetString()));
-        }
-
-        [Fact]
         public void ManifestRuntime_MatchesPinnedProtocol()
         {
             using var schema = ReadSchema("plugin-manifest.schema.json");
@@ -199,18 +141,13 @@ namespace FocusRgb.PluginSdk.Tests
 
             Assert.Equal(["node", "python"], values);
             Assert.Equal(typeof(string), typeof(PluginManifest).GetProperty(nameof(PluginManifest.Runtime))!.PropertyType);
-            Assert.Equal(
-                ["process.read", "process.start", "filesystem.read", "filesystem.write", "network.listen.loopback"],
-                schema.RootElement.GetProperty("properties").GetProperty("resources")
-                    .GetProperty("items").GetProperty("enum").EnumerateArray()
-                    .Select(item => item.GetString()));
         }
 
         private static JsonDocument ReadSchema(string fileName)
         {
             var specRoot = Environment.GetEnvironmentVariable("FOCUSRGB_SPEC_ROOT");
             Assert.False(string.IsNullOrWhiteSpace(specRoot),
-                "FOCUSRGB_SPEC_ROOT must point to a checkout of FocusRGB tag spec-v1.3.0.");
+                "FOCUSRGB_SPEC_ROOT must point to a checkout of FocusRGB tag spec-v1.2.0.");
             var path = Path.Combine(specRoot, "sdk", "spec", fileName);
             Assert.True(File.Exists(path), $"Pinned schema was not found at {path}.");
             return JsonDocument.Parse(File.ReadAllText(path));
@@ -222,7 +159,6 @@ namespace FocusRgb.PluginSdk.Tests
             if (type == typeof(string)) return "string";
             if (type == typeof(bool)) return "boolean";
             if (type == typeof(long) || type == typeof(int)) return "integer";
-            if (type == typeof(double)) return "number";
             if (type == typeof(DateTimeOffset)) return "string:date-time";
             var itemType = type.GetInterfaces().Append(type)
                 .FirstOrDefault(candidate => candidate.IsGenericType
@@ -230,9 +166,7 @@ namespace FocusRgb.PluginSdk.Tests
                 ?.GetGenericArguments()[0];
             return itemType is not null
                 ? "array:" + ExpectedSchemaType(itemType)
-                : "ref:" + (SchemaNames.TryGetValue(type, out var schemaName)
-                    ? schemaName
-                    : JsonNamingPolicy.CamelCase.ConvertName(type.Name));
+                : "ref:" + JsonNamingPolicy.CamelCase.ConvertName(type.Name);
         }
 
         private static string SchemaType(JsonElement schema)
