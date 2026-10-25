@@ -108,5 +108,6 @@ jobs:
           # NuGet pushes the matching .snupkg automatically with its .nupkg.
           dotnet nuget push $packages[0].FullName `
             --source "https://api.nuget.org/v3/index.json" `
+            --skip-duplicate `
             --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
           if ($LASTEXITCODE -ne 0) { throw "Package publication failed for $($packages[0].Name)." }
