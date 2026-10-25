@@ -65,11 +65,15 @@ jobs:
         run: |
           $packages = @(Get-ChildItem build/packages -Filter *.nupkg)
           if ($packages.Count -ne 1) { throw "Dry run expected one SDK package." }
+          $symbols = @(Get-ChildItem build/packages -Filter *.snupkg)
+          if ($symbols.Count -ne 1) { throw "Dry run expected one SDK symbol package." }
           Write-Host "Dry run completed for $env:RELEASE_TAG; no package was published."
       - uses: actions/upload-artifact@v7
         with:
           name: focusrgb-plugin-sdk
-          path: build/packages/*.nupkg
+          path: |
+            build/packages/*.nupkg
+            build/packages/*.snupkg
           if-no-files-found: error
           retention-days: 1
 
@@ -96,6 +100,12 @@ jobs:
         run: |
           $packages = @(Get-ChildItem build/packages -Filter *.nupkg)
           if ($packages.Count -ne 1) { throw "Publication expected one SDK package." }
+          $symbols = @(Get-ChildItem build/packages -Filter *.snupkg)
+          if ($symbols.Count -ne 1) { throw "Publication expected one SDK symbol package." }
+          if ($symbols[0].BaseName -ne $packages[0].BaseName) {
+            throw "SDK package and symbol package identities must match."
+          }
+          # NuGet pushes the matching .snupkg automatically with its .nupkg.
           dotnet nuget push $packages[0].FullName `
             --source "https://api.nuget.org/v3/index.json" `
             --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
