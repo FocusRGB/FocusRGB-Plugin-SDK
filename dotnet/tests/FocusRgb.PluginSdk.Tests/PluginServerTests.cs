@@ -76,7 +76,7 @@ namespace FocusRgb.PluginSdk.Tests
         {
             var plugin = new InitializingPlugin();
             using var input = new StringReader(
-                "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"contractVersion\":\"1.2\",\"host\":{\"name\":\"test\",\"version\":\"1.0.0\"}}}");
+                "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"contractVersion\":\"1.3\",\"host\":{\"name\":\"test\",\"version\":\"1.0.0\"}}}");
             using var output = new StringWriter();
 
             await PluginServer.RunAsync(
@@ -106,7 +106,7 @@ namespace FocusRgb.PluginSdk.Tests
             var sdk = actual.GetProperty("sdk");
             Assert.Equal("FocusRgb.PluginSdk", sdk.GetProperty("name").GetString());
             Assert.Equal("dotnet", sdk.GetProperty("language").GetString());
-            Assert.Matches("^[0-9]+\\.[0-9]+\\.[0-9]+$", sdk.GetProperty("version").GetString());
+            Assert.Equal("1.3.0", sdk.GetProperty("version").GetString());
         }
 
         [Fact]
@@ -127,6 +127,65 @@ namespace FocusRgb.PluginSdk.Tests
             Assert.Equal("example-game", item.GetProperty("resourceId").GetString());
             Assert.Equal("ExampleGame.exe", Assert.Single(
                 item.GetProperty("game").GetProperty("executables").EnumerateArray()).GetString());
+        }
+
+        [Fact]
+        public async Task RunAsync_DispatchesEffectInputToPlugin()
+        {
+            const string request = """
+                {"jsonrpc":"2.0","id":1,"method":"effect/input","params":{"profile":"gaming","bindingId":"main","mappingId":"level","sourcePluginId":"example-input","source":{"game":{"launcher":"example","id":"sample-game"},"adapter":"example.synthetic"},"sourceResourceId":"example.status.level","sequence":4,"receivedAt":"1970-01-01T00:00:00Z","freshness":"fresh","conditionMatched":true,"targetInputId":"example.effect.level","value":{"resourceId":"example.status.level","number":42}}}
+                """;
+            var plugin = new EffectInputPlugin();
+            using var output = new StringWriter();
+
+            await PluginServer.RunAsync(
+                plugin, new StringReader(request), output, TextWriter.Null,
+                TestContext.Current.CancellationToken);
+
+            Assert.Equal("example.status.level", plugin.Request!.SourceResourceId);
+            Assert.Equal(42, plugin.Request.Value!.Number);
+            using var response = JsonDocument.Parse(output.ToString());
+            Assert.Equal(EffectInputOutcome.Accepted,
+                response.RootElement.GetProperty("result").GetProperty("outcome").GetString());
+        }
+
+        [Fact]
+        public async Task RunAsync_ReturnsUnsupportedFromSourceCompatibleDefaultEffectInput()
+        {
+            const string request = """
+                {"jsonrpc":"2.0","id":1,"method":"effect/input","params":{"profile":"gaming","bindingId":"main","mappingId":"level","sourcePluginId":"example-input","source":{"game":{"launcher":"example","id":"sample-game"},"adapter":"example.synthetic"},"sourceResourceId":"example.status.level","sequence":4,"receivedAt":"1970-01-01T00:00:00Z","freshness":"stale","conditionMatched":false,"targetInputId":"example.effect.level"}}
+                """;
+            using var output = new StringWriter();
+
+            await PluginServer.RunAsync(
+                new StubPlugin(), new StringReader(request), output, TextWriter.Null,
+                TestContext.Current.CancellationToken);
+
+            using var response = JsonDocument.Parse(output.ToString());
+            Assert.Equal(EffectInputOutcome.Unsupported,
+                response.RootElement.GetProperty("result").GetProperty("outcome").GetString());
+        }
+
+        [Fact]
+        public async Task Host_PublishesGameTelemetryNotification()
+        {
+            using var output = new StringWriter();
+
+            await PluginServer.RunAsync(
+                new TelemetryPublishingPlugin(),
+                new StringReader("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"status/get\",\"params\":{}}"),
+                output,
+                TextWriter.Null,
+                TestContext.Current.CancellationToken);
+
+            var lines = output.ToString().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+            Assert.Equal(2, lines.Length);
+            using var notification = JsonDocument.Parse(lines[0]);
+            Assert.Equal(PluginMethods.GameTelemetry, notification.RootElement.GetProperty("method").GetString());
+            Assert.Equal(7, notification.RootElement.GetProperty("params").GetProperty("sequence").GetInt64());
+            using var response = JsonDocument.Parse(lines[1]);
+            Assert.Equal("available", response.RootElement.GetProperty("result")
+                .GetProperty("availability").GetString());
         }
 
         private class StubPlugin : IFocusRgbPlugin
@@ -174,7 +233,7 @@ namespace FocusRgb.PluginSdk.Tests
             {
                 PluginId = "example-plugin",
                 PluginVersion = "2.3.4",
-                ContractVersion = "1.2",
+                ContractVersion = "1.3",
                 Capabilities =
                 [
                     new PluginCapability
@@ -214,6 +273,44 @@ namespace FocusRgb.PluginSdk.Tests
                         }
                     ]
                 });
+            }
+        }
+
+        private sealed class EffectInputPlugin : StubPlugin, IFocusRgbPlugin
+        {
+            public EffectInputsRequest? Request { get; private set; }
+
+            public Task<EffectInputsResult> UpdateEffectInputsAsync(
+                EffectInputsRequest parameters,
+                CancellationToken cancellationToken)
+            {
+                Request = parameters;
+                return Task.FromResult(new EffectInputsResult { Outcome = EffectInputOutcome.Accepted });
+            }
+        }
+
+        private sealed class TelemetryPublishingPlugin : StubPlugin, IFocusRgbPlugin
+        {
+            private IPluginHost? _host;
+
+            public void Connect(IPluginHost host) => _host = host;
+
+            public override async Task<PluginStatusResult> GetStatusAsync(CancellationToken cancellationToken)
+            {
+                var source = new TelemetrySource
+                {
+                    Game = new GameReference { Launcher = "example", Id = "sample-game" },
+                    Adapter = "example.synthetic"
+                };
+                var notification = GameTelemetryNotification.Create(
+                        source,
+                        7,
+                        DateTimeOffset.UnixEpoch,
+                        TimeSpan.FromSeconds(1),
+                        TimeSpan.FromSeconds(5))
+                    .WithInput(TelemetryValue.FromNumber("example.status.level", 42));
+                await _host!.PublishGameTelemetryAsync(notification, cancellationToken);
+                return new PluginStatusResult { Availability = "available" };
             }
         }
 

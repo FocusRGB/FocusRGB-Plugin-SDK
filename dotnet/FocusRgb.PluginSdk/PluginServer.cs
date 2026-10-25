@@ -166,6 +166,8 @@ namespace FocusRgb.PluginSdk
                         Deserialize<BindingApplyParameters>(parameters), requestCancellationToken).ConfigureAwait(false),
                     PluginMethods.BindingRelease => await plugin.ReleaseBindingAsync(
                         Deserialize<BindingReleaseParameters>(parameters), requestCancellationToken).ConfigureAwait(false),
+                    PluginMethods.EffectInput => await plugin.UpdateEffectInputsAsync(
+                        Deserialize<EffectInputsRequest>(parameters), requestCancellationToken).ConfigureAwait(false),
                     PluginMethods.Shutdown => await ShutdownAsync(plugin, requestCancellationToken).ConfigureAwait(false),
                     _ => throw new JsonRpcDispatchException(-32601, $"Unknown method '{method}'.")
                 };
@@ -330,6 +332,19 @@ namespace FocusRgb.PluginSdk
                     method = PluginMethods.StatusChanged,
                     @params = new { }
                 }, cancellationToken);
+
+            public Task PublishGameTelemetryAsync(
+                GameTelemetryNotification notification,
+                CancellationToken cancellationToken = default)
+            {
+                ArgumentNullException.ThrowIfNull(notification);
+                return WriteAsync(output, writeGate, new
+                {
+                    jsonrpc = "2.0",
+                    method = PluginMethods.GameTelemetry,
+                    @params = notification
+                }, cancellationToken);
+            }
 
             public async Task LogAsync(string message, CancellationToken cancellationToken = default)
             {
