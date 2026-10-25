@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace FocusRgb.Contracts
 {
-    /// <summary>Names the JSON-RPC methods in the stable 1.3 plugin protocol.</summary>
+    /// <summary>Names the JSON-RPC methods in the stable 1.2 plugin protocol.</summary>
     public static class PluginMethods
     {
         public const string Initialize = "initialize";
@@ -10,20 +10,9 @@ namespace FocusRgb.Contracts
         public const string CatalogList = "catalog/list";
         public const string BindingApply = "binding/apply";
         public const string BindingRelease = "binding/release";
-        public const string EffectInput = "effect/input";
         public const string Shutdown = "shutdown";
         public const string StatusChanged = "status/changed";
-        public const string GameTelemetry = "game/telemetry";
         public const string Cancel = "$/cancel";
-    }
-
-    /// <summary>Names the provider-neutral catalog kinds accepted by <c>catalog/list</c>.</summary>
-    public static class CatalogKind
-    {
-        public const string Effect = "effect";
-        public const string Layout = "layout";
-        public const string Game = "game";
-        public const string Telemetry = "telemetry";
     }
 
     /// <summary>Describes an installed plugin package before any process is launched.</summary>
@@ -113,7 +102,7 @@ namespace FocusRgb.Contracts
         public required string DisplayName { get; init; }
     }
 
-    /// <summary>Requests an effect, layout, installed-game, or telemetry descriptor catalog.</summary>
+    /// <summary>Requests an effect, layout, or installed-game catalog.</summary>
     public sealed class CatalogListParameters
     {
         public required string Kind { get; init; }
@@ -136,7 +125,6 @@ namespace FocusRgb.Contracts
         public required bool Available { get; init; }
         public PluginReason? Reason { get; init; }
         public PluginGameCatalogMetadata? Game { get; init; }
-        public TelemetryDescriptor? Telemetry { get; init; }
     }
 
     /// <summary>Lists executable file names that identify one installed game without exposing paths.</summary>
