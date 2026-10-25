@@ -6,14 +6,10 @@ namespace FocusRgb.PluginSdk
     public interface IPluginHost
     {
         Task NotifyStatusChangedAsync(CancellationToken cancellationToken = default);
-        Task PublishGameTelemetryAsync(
-            GameTelemetryNotification notification,
-            CancellationToken cancellationToken = default) =>
-            Task.FromException(new NotSupportedException("This host does not support game telemetry."));
         Task LogAsync(string message, CancellationToken cancellationToken = default);
     }
 
-    /// <summary>Implements the stable methods in the FocusRGB 1.3 process-plugin contract.</summary>
+    /// <summary>Implements the stable methods in the FocusRGB 1.2 process-plugin contract.</summary>
     public interface IFocusRgbPlugin
     {
         void Connect(IPluginHost host)
@@ -37,13 +33,6 @@ namespace FocusRgb.PluginSdk
         Task<BindingReleaseResult> ReleaseBindingAsync(
             BindingReleaseParameters parameters,
             CancellationToken cancellationToken);
-
-        Task<EffectInputsResult> UpdateEffectInputsAsync(
-            EffectInputsRequest parameters,
-            CancellationToken cancellationToken) => Task.FromResult(new EffectInputsResult
-            {
-                Outcome = EffectInputOutcome.Unsupported
-            });
 
         Task ShutdownAsync(CancellationToken cancellationToken);
     }
