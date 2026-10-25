@@ -46,7 +46,7 @@ namespace FocusRgb.Plugin.Template
 
         public Task<PluginCatalogResult> ListCatalogAsync(
             CatalogListParameters parameters,
-            CancellationToken cancellationToken) => Task.FromResult(parameters.Kind == "effect"
+            CancellationToken cancellationToken) => Task.FromResult(parameters.Kind == CatalogKind.Effect
                 ? new PluginCatalogResult
                 {
                     Support = "supported",

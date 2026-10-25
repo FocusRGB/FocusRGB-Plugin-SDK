@@ -8,7 +8,7 @@
     <RootNamespace>FocusRgb.Plugin.Template</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="FocusRgb.PluginSdk" Version="1.2.0" />
+    <PackageReference Include="FocusRgb.PluginSdk" Version="1.3.0" />
     <None Update="focusrgb-plugin.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
