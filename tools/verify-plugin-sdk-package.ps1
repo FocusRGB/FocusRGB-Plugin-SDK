@@ -81,8 +81,8 @@ try {
     Invoke-DotNet restore $generatedProject --source $feedA --packages $packages
     Invoke-DotNet build $generatedProject -c Release --no-restore --disable-build-servers
     $generatedManifest = Get-Content (Join-Path $generated 'focusrgb-plugin.json') -Raw | ConvertFrom-Json
-    if ($generatedManifest.id -ne 'generated-output' -or $generatedManifest.contractVersion -ne '1.2'
-        -or $generatedManifest.version -ne '0.1.0') {
+    if ($generatedManifest.id -ne 'generated-output' -or $generatedManifest.contractVersion -ne '1.2' -or
+        $generatedManifest.version -ne '0.1.0') {
         throw 'Generated plugin manifest did not contain the requested ID, template version, and stable contract.'
     }
     $generatedLicense = Get-Content (Join-Path $generated 'LICENSE.txt') -Raw
