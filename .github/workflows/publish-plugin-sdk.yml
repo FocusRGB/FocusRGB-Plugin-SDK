@@ -56,7 +56,7 @@ jobs:
           $onMain = $mainExit -eq 0
           if (-not ($onDevelop -or $onMain)) { throw "SDK tags must point to develop or main history." }
           exit 0
-      - run: dotnet restore FocusRGB-Plugin-SDK.slnx
+      - run: dotnet restore FocusRGB-SDK.slnx
       - name: Pack SDK
         run: dotnet pack dotnet/FocusRgb.PluginSdk/FocusRgb.PluginSdk.csproj -c Release --no-restore -o build/packages
       - name: Verify dry run

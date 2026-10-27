@@ -30,7 +30,7 @@ namespace FocusRgb.PluginSdk.Tests
             using var document = JsonDocument.Parse(sourceLink);
             var mappings = document.RootElement.GetProperty("documents");
             Assert.Contains(mappings.EnumerateObject(), item => item.Value.GetString()!
-                .StartsWith("https://raw.githubusercontent.com/FocusRGB/FocusRGB-Plugin-SDK/", StringComparison.Ordinal));
+                .StartsWith("https://raw.githubusercontent.com/FocusRGB/FocusRGB-SDK/", StringComparison.Ordinal));
             var options = Encoding.UTF8.GetString(metadata[compilationOptionsKind]);
             Assert.Contains("compiler-version", options, StringComparison.Ordinal);
             Assert.Contains("language", options, StringComparison.Ordinal);

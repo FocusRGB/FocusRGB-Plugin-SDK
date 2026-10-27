@@ -29,9 +29,9 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
-      - run: dotnet restore FocusRGB-Plugin-SDK.slnx
-      - run: dotnet build FocusRGB-Plugin-SDK.slnx -c Release --no-restore
-      - run: dotnet test --solution FocusRGB-Plugin-SDK.slnx -c Release --no-build
+      - run: dotnet restore FocusRGB-SDK.slnx
+      - run: dotnet build FocusRGB-SDK.slnx -c Release --no-restore --disable-build-servers
+      - run: dotnet test --solution FocusRGB-SDK.slnx -c Release --no-build
       - name: Verify package, consumer, and template
         shell: pwsh
         run: ./tools/verify-plugin-sdk-package.ps1
