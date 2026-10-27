@@ -18,7 +18,7 @@ namespace FocusRgb.Plugin.Template
             CancellationToken cancellationToken) => Task.FromResult(new InitializeResult
             {
                 PluginId = "focusrgb-plugin-template",
-                PluginVersion = "1.0.0",
+                PluginVersion = "0.1.0",
                 ContractVersion = ContractVersion.Current,
                 Capabilities =
                 [

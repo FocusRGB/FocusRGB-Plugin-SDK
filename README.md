@@ -1,8 +1,8 @@
-# FocusRGB Plugin SDK
+# FocusRGB SDK
 
 <img src="assets/logo-128.png" alt="FocusRGB logo" width="128">
 
-Official SDKs for writing [FocusRGB](https://github.com/FocusRGB/FocusRGB) plugins. A plugin is a
+Official SDKs in [FocusRGB-SDK](https://github.com/FocusRGB/FocusRGB-SDK) for writing [FocusRGB](https://github.com/FocusRGB/FocusRGB) plugins. A plugin is a
 separate process that FocusRGB starts and talks to directly over stdin/stdout using
 newline-delimited JSON-RPC. These SDKs implement that protocol so plugin authors don't have to.
 
@@ -25,6 +25,7 @@ tested against a tagged version of that spec.
 ## Layout
 
 ```text
+FocusRGB-SDK.slnx  .NET SDK solution
 dotnet/      FocusRgb.PluginSdk (+ its message types) and tests
 templates/   dotnet new template for a standalone plugin repository
 tools/       package reproducibility, consumer, and tagged-spec conformance checks
